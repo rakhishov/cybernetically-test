@@ -1,18 +1,27 @@
 import axios from 'axios';
-import { useEffect, useState, useMemo } from 'react';
-import { ListContainer, ListItem } from "./styles";
-import { DragHandle } from './DragHandle';
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { useEffect, useState } from 'react';
+import { DragDropContext} from "react-beautiful-dnd";
+import { TablePagination } from '@mui/material';
+import SharesTable from '../components/SharesTable';
+import Loading from '../components/Loading';
 import '../styles/table.css'
-import Loading from '../infinity.svg'
+
 
 function Homepage() {
-    
-
-
+    const [pg, setpg] = useState(0);
+    const [rpg, setrpg] = useState(10);
     const [shares, setShares] = useState([]);
+
+    function handleChangePage(event, newpage) {
+      setpg(newpage);
+    }
+    function handleChangeRowsPerPage(event) {
+      setrpg(parseInt(event.target.value, 10));
+      setpg(0);
+    }
+    
     async function fetchData(){
-        const companies = ['aapl', 'amzn', 'fb', 'trmk', 'trs', 'nflx', 'udmy', 'udr', 'usio'];
+        const companies = ['aapl', 'aca', 'ACM', 'ACNB', 'ADT', 'ADTX', 'AAON', 'AFL', "AGEN", "AGFY", "AEI", 'AES', 'amzn', 'fb', 'trmk', 'trs', 'nflx', 'udmy', 'udr', 'usio'];
         const sharesList = []
         for(let i = 0; i<companies.length; i++){
             const url = `https://cloud.iexapis.com/stable/stock/${companies[i]}/quote?token=pk_a7f6e686894a4c8caf852df76e9f97b0`;
@@ -21,6 +30,7 @@ function Homepage() {
                 const share = {
                     id: i,
                     company: res.data['companyName'],
+                    latestPrice: res.data['latestPrice'],
                     volume: res.data['avgTotalVolume'],
                     change: res.data['change'],
                     changePercent: res.data['changePercent'],
@@ -44,7 +54,7 @@ function Homepage() {
 
   return (
     <>
-    {shares.length == 0 ? <div><img src={Loading} alt="" srcset="" width={'450px'} /></div> :
+    {shares.length === 0 ? <Loading/> :
     <div>
         <DragDropContext
         onDragEnd={(param) => {
@@ -55,57 +65,23 @@ function Homepage() {
           }
         }}
       >
-        <ListContainer>
+        <div className='sharesContainer'>
           <h1>Share List</h1>
-        <table>
-          <thead>
-            <tr>
-                <th>Company</th>
-                <th>Volume</th>
-                <th>Change</th>
-                <th>yearLow</th>
-                <th>yearHigh</th>
-            </tr>
-          </thead>
-          <Droppable droppableId="droppable-1">
-            {(provided, _) => (
-              <tbody ref={provided.innerRef} {...provided.droppableProps}>
-                {shares.map((item, i) => (
-                  <Draggable
-                    key={item.id}
-                    draggableId={"draggable-" + item.id}
-                    index={i}
-                  >
-                    {(provided, snapshot) => (
-                      <tr
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        style={{
-                          ...provided.draggableProps.style,
-                          boxShadow: snapshot.isDragging
-                            ? "0 0 .4rem #666"
-                            : "none",
-                        }}
-                      >
-                        <td>
-                            <DragHandle {...provided.dragHandleProps} />
-                          <span>{i+1 + ". "+ item.company}</span>
-                        </td>
-                        <td>{item.volume}</td>
-                        <td>{item.change}</td>
-                        <td>{item.yearLow}</td>
-                        <td>{item.yearHigh}</td>
-                      </tr>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </tbody>
-            )}
-        
-          </Droppable>
-          </table>
-        </ListContainer>
+        <SharesTable
+          shares={shares}
+          pg={pg}
+          rpg={rpg}
+        />
+          <TablePagination
+                component="div"
+                rowsPerPageOptions={[5, 10]}
+                count={shares.length}
+                rowsPerPage={rpg}
+                page={pg}
+                onPageChange={handleChangePage}
+                onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+        </div>
       </DragDropContext>
     </div>
 }
