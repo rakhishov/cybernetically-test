@@ -21,10 +21,11 @@ function Homepage() {
     }
     
     async function fetchData(){
+        console.log(process.env);
         const companies = ['aapl', 'aca', 'ACM', 'ACNB', 'ADT', 'ADTX', 'AAON', 'AFL', "AGEN", "AGFY", "AEI", 'AES', 'amzn', 'fb', 'trmk', 'trs', 'nflx', 'udmy', 'udr', 'usio'];
         const sharesList = []
         for(let i = 0; i<companies.length; i++){
-            const url = `https://cloud.iexapis.com/stable/stock/${companies[i]}/quote?token=pk_a7f6e686894a4c8caf852df76e9f97b0`;
+            const url = `https://cloud.iexapis.com/stable/stock/${companies[i]}/quote?token=${process.env.REACT_APP_TOKEN}`;
             await axios.get(url)
             .then(res => {
                 const share = {
